@@ -1,9 +1,7 @@
-import { Text, View } from "react-native";
+import { AppNavigator } from "@/navigation/AppNavigator";
 
-export default function HomeScreen() {
+export default function Index() {
   return (
-    <View>
-      <Text>Hello punpun</Text>
-    </View>
+      <AppNavigator />
   );
 }
