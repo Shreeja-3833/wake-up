@@ -15,7 +15,11 @@
         "backgroundColor": "#ffffff",
         "foregroundImage": "./assets/images/play_store_512.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.SCHEDULE_EXACT_ALARM"
+      ],
+      "package": "com.shreeja1201.wakeup"
     },
     "web": {
       "output": "static",
@@ -30,11 +34,18 @@
           "image": "./assets/images/play_store_512.png",
           "imageWidth": 76
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "2f69eddd-ede0-436a-a635-d106fb90dc28"
+      }
     }
   }
 }
