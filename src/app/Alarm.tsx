@@ -1,16 +1,34 @@
 import DateTime from "@/components/DateTime";
 import * as Application from "expo-application";
 import * as IntentLauncher from "expo-intent-launcher";
+import { useNavigation } from "@react-navigation/native";
 import { useEffect, useState } from "react";
 import { Alert, Platform, Text, TouchableOpacity, View } from "react-native";
 import RNAlarmModule from "react-native-alarmageddon";
+import { RootNavigation } from "@/navigation/types";
 
 const rma = RNAlarmModule;
 
-export default function Alarm() {
+export default function Alarm () {
+  const navigation=useNavigation<RootNavigation>()
   const [date, setDate] = useState(new Date());
   const [activeAlarms, setActiveAlarms] = useState<any[]>([]);
   const [showPicker, setShowPicker] = useState<boolean>(false);
+  const [alarm, setAlarm]=useState<boolean>(false);
+
+  //Navigate to activity when alarm is ringing
+  useEffect(() => {
+    const checkActiveAlarm = async () => {
+      const activeAlarm = await RNAlarmModule.getCurrentAlarmPlaying();
+
+      if (activeAlarm) {
+        navigation.navigate("Step Counter");
+      }
+    };
+
+    checkActiveAlarm();
+  }, []);
+
   const getPermission = async () => {
     const granted = await rma.ensurePermissions();
 
@@ -53,6 +71,7 @@ export default function Alarm() {
       checkAndRequestAlarmPermission();
     }
   };
+
   const refreshAlarmList = async () => {
     const list = await rma.listAlarms();
     setActiveAlarms(list);
@@ -67,8 +86,6 @@ export default function Alarm() {
       await rma.scheduleAlarm({
         id: `alarm-${date}`,
         datetimeISO: date.toISOString(),
-        title: "Wake Up!",
-        body: "Your scheduled alarm is ringing.",
       });
       Alert.alert("Alarm set successfully ✨");
       refreshAlarmList();
@@ -78,8 +95,8 @@ export default function Alarm() {
   };
 
   useEffect(() => {
-    handleScheduleAlarm()
-  }, [date]);
+    if(alarm) handleScheduleAlarm()
+  }, [alarm]);
 
   return (
     <View style={{ padding: 20, marginTop: 20 }}>
@@ -91,7 +108,7 @@ export default function Alarm() {
       </TouchableOpacity>
 
       {showPicker && (
-        <DateTime date={date} setDate={setDate} setShowPicker={setShowPicker} />
+        <DateTime date={date} setDate={setDate} setShowPicker={setShowPicker} alarm={alarm} setAlarm={setAlarm} />
       )}
 
       {activeAlarms &&

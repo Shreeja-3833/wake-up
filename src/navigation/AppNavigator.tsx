@@ -1,17 +1,20 @@
 import Alarm from "@/app/Alarm";
 import Home from "@/app/HomeScreen";
-import { createNativeStackNavigator } from "expo-router/build/react-navigation/native-stack";
+import StepCounter from "@/app/StepCounter";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { RootStackParamList } from "./types";
 
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
-export const AppNavigator=()=> {
+export const AppNavigator = () => {
   return (
     <Stack.Navigator
-      initialRouteName="Alarm"
+      initialRouteName="Step Counter"
       screenOptions={{ headerShown: false }}
     >
       <Stack.Screen name="Home" component={Home} />
-      <Stack.Screen name="Alarm" component={Alarm}/>
+      <Stack.Screen name="Alarm" component={Alarm} />
+      <Stack.Screen name="Step Counter" component={StepCounter} />
     </Stack.Navigator>
   );
-}
+};
