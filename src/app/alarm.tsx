@@ -15,7 +15,7 @@ export default function Alarm() {
   const [showPicker, setShowPicker] = useState<boolean>(false);
   const [alarm, setAlarm] = useState<boolean>(false);
 
-  //Navigate to activity when alarm is ringing
+  //Navigate to activity when alarm is ringing gggmkmgoirmgjirmg
   const redirecting = useRef(false);
 
   useFocusEffect(
