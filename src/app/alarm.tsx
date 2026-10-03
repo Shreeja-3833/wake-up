@@ -3,7 +3,14 @@ import * as Application from "expo-application";
 import * as IntentLauncher from "expo-intent-launcher";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Alert, AppState, Platform, Text, TouchableOpacity, View } from "react-native";
+import {
+  Alert,
+  AppState,
+  Platform,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import RNAlarmModule from "react-native-alarmageddon";
 
 const rma = RNAlarmModule;
@@ -15,7 +22,7 @@ export default function Alarm() {
   const [showPicker, setShowPicker] = useState<boolean>(false);
   const [alarm, setAlarm] = useState<boolean>(false);
 
-  //Navigate to activity when alarm is ringing gggmkmgoirmgjirmg
+  //Navigate to activity when alarm is ringing
   const redirecting = useRef(false);
 
   useFocusEffect(
@@ -26,11 +33,14 @@ export default function Alarm() {
         if (redirecting.current) return;
         try {
           const activeAlarm = await rma.getCurrentAlarmPlaying();
-          // console.log(activeAlarm,'active alarmmmmmmm ');
-          
+          console.log(activeAlarm, "active alarmmmmmmm ");
+
           if (activeAlarm) {
             redirecting.current = true;
-            router.push("/step-counter");
+            router.push({
+              pathname: "/step-counter",
+              params: { alarmId: activeAlarm["activeAlarmId"] },
+            });
           }
         } catch (e) {
           console.warn("Alarm check failed", e);
@@ -105,12 +115,12 @@ export default function Alarm() {
   }, []);
 
   const toLocalISO = (d: Date) => {
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return (
-    `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` +
-    `T${pad(d.getHours())}:${pad(d.getMinutes())}:00`
-  );
-};
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return (
+      `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` +
+      `T${pad(d.getHours())}:${pad(d.getMinutes())}:00`
+    );
+  };
 
   const handleScheduleAlarm = async () => {
     try {

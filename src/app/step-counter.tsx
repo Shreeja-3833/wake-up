@@ -1,14 +1,19 @@
+import AlarmModal from "@/components/AlarmModal";
 import * as Application from "expo-application";
 import * as IntentLauncher from "expo-intent-launcher";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { Pedometer } from "expo-sensors";
 import { useEffect, useState } from "react";
 import { Alert, Platform, StyleSheet, Text, View } from "react-native";
 
 const StepCounter = () => {
-  const router=useRouter()
+  const router = useRouter();
+  const { alarmId } = useLocalSearchParams();
+  // console.log(alarmId, "alarmId alarmId alarmId alarmId alarmId");
+
   const [isPedometerAvailable, setIsPedometerAvailable] = useState("checking");
   const [currentStepCount, setCurrentStepCount] = useState(0);
+  const [alarmActionModal, setAlarmActionModal] = useState(false);
 
   const subscribe = async () => {
     const isAvailable = await Pedometer.isAvailableAsync();
@@ -63,44 +68,42 @@ const StepCounter = () => {
     return requested.granted;
   };
 
-  useEffect(() => {
-    let subscription: { remove: () => void } | undefined;
-    let startTime: number;
-    let timer: ReturnType<typeof setInterval>;
+useEffect(() => {
+  let subscription: { remove: () => void } | undefined;
+  let timer: ReturnType<typeof setTimeout>;
 
-    (async () => {
-      const granted = await getPermissions();
-      if (granted) {
-        subscription = await subscribe();
-        startTime = Date.now();
+  (async () => {
+    const granted = await getPermissions();
+    if (!granted) return;
 
-        timer = setInterval(() => {
-          const elapsed = Date.now() - startTime;
+    subscription = await subscribe();
 
-          if (elapsed >= 60000) {
-            () => {
-              subscription?.remove();
-            };
-            // console.log('stopping step counter');
-            Alert.alert("Stopping step counter");
-            clearInterval(timer);
-            router.back();
-            return;
-          }
-        }, 1000);
-      }
-    })();
-
-    return () => {
+    // after one minute: stop pedometer and show the modal
+    timer = setTimeout(() => {
       subscription?.remove();
-      clearInterval(timer);
-    };
-  }, []);
+      subscription = undefined;
+      setAlarmActionModal(true);
+    }, 60000);
+  })();
+
+  return () => {
+    subscription?.remove();
+    clearTimeout(timer);
+  };
+}, []);
+
+const handleDone = () => {
+  setAlarmActionModal(false);
+  router.back();
+};
 
   return (
     <View style={styles.container}>
       <Text>Pedometer.isAvailableAsync(): {isPedometerAvailable}</Text>
       <Text>Walk! And watch this go up: {currentStepCount}</Text>
+      {alarmActionModal && (
+        <AlarmModal alarmId={String(alarmId)} modalVisible={alarmActionModal} onDone={handleDone}/>
+      )}
     </View>
   );
 };
