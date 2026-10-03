@@ -1,33 +1,56 @@
 import DateTime from "@/components/DateTime";
 import * as Application from "expo-application";
 import * as IntentLauncher from "expo-intent-launcher";
-import { useNavigation } from "@react-navigation/native";
-import { useEffect, useState } from "react";
-import { Alert, Platform, Text, TouchableOpacity, View } from "react-native";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Alert, AppState, Platform, Text, TouchableOpacity, View } from "react-native";
 import RNAlarmModule from "react-native-alarmageddon";
-import { RootNavigation } from "@/navigation/types";
 
 const rma = RNAlarmModule;
 
-export default function Alarm () {
-  const navigation=useNavigation<RootNavigation>()
+export default function Alarm() {
+  const router = useRouter();
   const [date, setDate] = useState(new Date());
   const [activeAlarms, setActiveAlarms] = useState<any[]>([]);
   const [showPicker, setShowPicker] = useState<boolean>(false);
-  const [alarm, setAlarm]=useState<boolean>(false);
+  const [alarm, setAlarm] = useState<boolean>(false);
 
   //Navigate to activity when alarm is ringing
-  useEffect(() => {
-    const checkActiveAlarm = async () => {
-      const activeAlarm = await RNAlarmModule.getCurrentAlarmPlaying();
+  const redirecting = useRef(false);
 
-      if (activeAlarm) {
-        navigation.navigate("Step Counter");
-      }
-    };
+  useFocusEffect(
+    useCallback(() => {
+      redirecting.current = false;
 
-    checkActiveAlarm();
-  }, []);
+      const checkActiveAlarm = async () => {
+        if (redirecting.current) return;
+        try {
+          const activeAlarm = await rma.getCurrentAlarmPlaying();
+          // console.log(activeAlarm,'active alarmmmmmmm ');
+          
+          if (activeAlarm) {
+            redirecting.current = true;
+            router.push("/step-counter");
+          }
+        } catch (e) {
+          console.warn("Alarm check failed", e);
+        }
+      };
+
+      checkActiveAlarm(); // immediately on focus
+      const interval = setInterval(checkActiveAlarm, 1000);
+
+      // also check when app comes back to foreground
+      const sub = AppState.addEventListener("change", (state) => {
+        if (state === "active") checkActiveAlarm();
+      });
+
+      return () => {
+        clearInterval(interval);
+        sub.remove();
+      };
+    }, [router]),
+  );
 
   const getPermission = async () => {
     const granted = await rma.ensurePermissions();
@@ -81,11 +104,19 @@ export default function Alarm () {
     refreshAlarmList();
   }, []);
 
+  const toLocalISO = (d: Date) => {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return (
+    `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` +
+    `T${pad(d.getHours())}:${pad(d.getMinutes())}:00`
+  );
+};
+
   const handleScheduleAlarm = async () => {
     try {
       await rma.scheduleAlarm({
         id: `alarm-${date}`,
-        datetimeISO: date.toISOString(),
+        datetimeISO: toLocalISO(date),
       });
       Alert.alert("Alarm set successfully ✨");
       refreshAlarmList();
@@ -95,7 +126,7 @@ export default function Alarm () {
   };
 
   useEffect(() => {
-    if(alarm) handleScheduleAlarm()
+    if (alarm) handleScheduleAlarm();
   }, [alarm]);
 
   return (
@@ -108,7 +139,13 @@ export default function Alarm () {
       </TouchableOpacity>
 
       {showPicker && (
-        <DateTime date={date} setDate={setDate} setShowPicker={setShowPicker} alarm={alarm} setAlarm={setAlarm} />
+        <DateTime
+          date={date}
+          setDate={setDate}
+          setShowPicker={setShowPicker}
+          alarm={alarm}
+          setAlarm={setAlarm}
+        />
       )}
 
       {activeAlarms &&

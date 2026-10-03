@@ -1,10 +1,12 @@
 import * as Application from "expo-application";
 import * as IntentLauncher from "expo-intent-launcher";
+import { useRouter } from "expo-router";
 import { Pedometer } from "expo-sensors";
 import { useEffect, useState } from "react";
 import { Alert, Platform, StyleSheet, Text, View } from "react-native";
 
 const StepCounter = () => {
+  const router=useRouter()
   const [isPedometerAvailable, setIsPedometerAvailable] = useState("checking");
   const [currentStepCount, setCurrentStepCount] = useState(0);
 
@@ -61,20 +63,6 @@ const StepCounter = () => {
     return requested.granted;
   };
 
-  const runFor5Minutes = (duration: number, taskFunction: any) => {
-    const startTime = Date.now();
-    const durationMs = duration * 60 * 1000;
-
-    const timer = setInterval(() => {
-      const elapsed = Date.now() - startTime;
-      if (elapsed >= durationMs) {
-        clearInterval(timer);
-        console.log("Step counter ran for 5 minutes");
-      }
-      taskFunction();
-    });
-  };
-
   useEffect(() => {
     let subscription: { remove: () => void } | undefined;
     let startTime: number;
@@ -89,11 +77,14 @@ const StepCounter = () => {
         timer = setInterval(() => {
           const elapsed = Date.now() - startTime;
 
-          if (elapsed >= 300000) {
+          if (elapsed >= 60000) {
             () => {
               subscription?.remove();
             };
+            // console.log('stopping step counter');
+            Alert.alert("Stopping step counter");
             clearInterval(timer);
+            router.back();
             return;
           }
         }, 1000);

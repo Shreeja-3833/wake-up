@@ -1,0 +1,12 @@
+diff --git a/node_modules/react-native-alarmageddon/android/src/main/java/com/rnalarmmodule/AlarmReceiver.kt b/node_modules/react-native-alarmageddon/android/src/main/java/com/rnalarmmodule/AlarmReceiver.kt
+index 8eb109e..f092135 100644
+--- a/node_modules/react-native-alarmageddon/android/src/main/java/com/rnalarmmodule/AlarmReceiver.kt
++++ b/node_modules/react-native-alarmageddon/android/src/main/java/com/rnalarmmodule/AlarmReceiver.kt
+@@ -71,7 +71,6 @@ class AlarmReceiver : BroadcastReceiver() {
+         acquireWakeLock(context)
+         setupAudio(context)
+         playAlarm(context, id)
+-        showNotificationWithActions(context, id, title, body, snoozeEnabled, snoozeInterval)
+     }
+ 
+     private fun acquireWakeLock(context: Context) {
